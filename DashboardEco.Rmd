@@ -1,0 +1,94 @@
+---
+title: "Dashboard"
+author: "Iván Mejía"
+runtime: shiny
+output:
+  flexdashboard::flex_dashboard:
+    social: menu
+    orientation: columns
+    vertical_layout: scroll
+    source_code: https://github.com/Ivanmejiar/Dashboard.git
+    theme: cerulean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+# Librerias
+library(flexdashboard)
+library(pacman)
+p_load(readxl, TSstudio, tidyverse, stats, urca, forecast, ggfortify, ggplot2, tseries)
+```
+
+```{r}
+path <- "C:/Users/ASUS/Documents/Econometria/kw.xls"
+```
+
+```{r}
+# Cargamos base de datos
+kwc <- read_excel("C:/Users/ASUS/Documents/Econometria/kw.xls")
+kwc <- kwc |> select(kwpc)
+Khc <- ts(kwc$kwpc, frequency=1, start=c(1971))
+```
+
+```{r}
+# Modelo
+arima_1 <- arima(Khc, order = c(1,2,1))
+arima_1
+```
+
+Pagina 1
+=================================================================================================
+
+Columna 1 {data-width=[100]}
+--------------------------------------------------------------------------------
+
+### Cuadro A
+```{r}
+ts_plot(Khc,
+        title = "kWh per cápita", 
+        Ytitle = "kWh",
+        Xtitle = "Años")
+```
+
+Columna 2 {data-width=[100]}
+--------------------------------------------------------------------------------
+
+### Cuadro B 
+```{r}
+# Test de Ruido Blanco
+forecast::checkresiduals(arima(Khc, order = c(1, 2, 1), include.mean = FALSE))
+```
+
+Pagina 2
+=================================================================================================
+
+Columna 3 {data-width=[100]} {.tabset}
+--------------------------------------------------------------------------------
+
+### Cuadro C
+```{r}
+# Pronostico de kWh per cápita
+arima_fc <- forecast(arima_1, h = 12)
+plot_forecast(arima_fc,
+              title = "Pronostico modelo AR(1)", 
+              Ytitle = "Valores",
+              Xtitle = "Años")
+```
+
+### Cuadro D
+```{r}
+# Predicción detrás de la serie 
+plot.ts(Khc, col = "blue", xlab = "Tiempo", ylab = "kWh per cápita", main = "Predicción de kWh per cápita")
+lines(arima_fc$fitted, col = "red")
+legend("topleft", legend = c("Serie Original", "Predicción"), col = c("blue", "red"), lty = 1)
+```
+
+
+
+
+
+
+
